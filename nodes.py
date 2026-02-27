@@ -184,39 +184,36 @@ def split_text_by_pauses(text: str, config: Dict[str, float]) -> List[Tuple[str,
     parts = re.split(pause_pattern, text)
     
     segments = []
+    current_segment_text = ""
     
-    # Logic: Text, Break, Text, Break...
-    # split results in: [Text1, Time1, Text2, Time2, ...] 
-    # but since regex capture group is used, it alternates.
-    
-    for i in range(0, len(parts), 2):
-        segment_text = parts[i].strip()
-        if not segment_text: 
-            # If text is empty but next is a pause, it means we have consecutive pauses or leading pause.
-            # We skip empty text but might need to handle the pause if it belongs to previous.
-            # But simpler: just continue. The next pause will be attached to nothing? 
-            # Wait, if i+1 exists, it IS the pause for this segment.
-            # If segment is empty, we effectively just have a pause.
-            # We can return an empty string with duration?
-            # Let's just skip empty or whitespace-only segments for now unless strict timing needed.
-            if i + 1 < len(parts):
-                 # There was a pause attached to this empty segment. 
-                 # We can add it to previous segment if exists, or append empty segment?
-                 pass
-        
-        current_segment_pause = 0.0
-        if i + 1 < len(parts):
+    for i in range(len(parts)):
+        chunk = parts[i]
+        if i % 2 == 0:
+            # This is text
+            if chunk.strip():
+                if current_segment_text:
+                    # We had previous text waiting for a pause, but found text instead.
+                    # This shouldn't happen with our regex unless there's no punctuation between them.
+                    segments.append((current_segment_text.strip(), 0.0))
+                current_segment_text = chunk
+        else:
+            # This is a pause duration
             try:
-                current_segment_pause = float(parts[i+1])
-            except ValueError: pass
+                pause_val = float(chunk)
+            except ValueError:
+                pause_val = 0.0
+                
+            if current_segment_text:
+                segments.append((current_segment_text.strip(), pause_val))
+                current_segment_text = ""
+            elif segments and pause_val > 0:
+                # Add this pause to the previous segment (consecutive pauses)
+                prev_txt, prev_pause = segments[-1]
+                segments[-1] = (prev_txt, prev_pause + pause_val)
 
-        if segment_text:
-            segments.append((segment_text, current_segment_pause))
-        elif current_segment_pause > 0 and segments:
-            # Add this pause to the previous segment
-            prev_txt, prev_pause = segments[-1]
-            segments[-1] = (prev_txt, prev_pause + current_segment_pause)
-
+    if current_segment_text.strip():
+        segments.append((current_segment_text.strip(), 0.0))
+        
     return segments
 
 
