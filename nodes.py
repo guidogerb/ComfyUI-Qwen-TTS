@@ -171,13 +171,13 @@ def split_text_by_pauses(text: str, config: Dict[str, float]) -> List[Tuple[str,
 
     # Inject break tags for both English and Chinese punctuation
     if period_pause > 0:
-        text = re.sub(r'[\.。](?!\d)', f'. [break={period_pause}]', text)
+        text = re.sub(r'[\.。](?!\d)', rf'\g<0> [break={period_pause}]', text)
     if comma_pause > 0:
-        text = re.sub(r'[,，](?!\d)', f', [break={comma_pause}]', text)
+        text = re.sub(r'[,，](?!\d)', rf'\g<0> [break={comma_pause}]', text)
     if question_pause > 0:
-        text = re.sub(r'[\?？](?!\d)', f'? [break={question_pause}]', text)
+        text = re.sub(r'[\?？](?!\d)', rf'\g<0> [break={question_pause}]', text)
     if hyphen_pause > 0:
-        text = re.sub(r'[-—](?!\d)', f'- [break={hyphen_pause}]', text)
+        text = re.sub(r'[-—](?!\d)', rf'\g<0> [break={hyphen_pause}]', text)
 
     # Process explicit break tags
     pause_pattern = r'\[break=([\d\.]+)\]'
@@ -875,10 +875,16 @@ class VoiceCloneNode:
                         results.append(silence)
                     continue
 
+                # Strip trailing flat punctuation to prevent robotic intonation dropping on short segments
+                # We keep ? and ! because they convey necessary emotive intonation.
+                clean_seg_text = re.sub(r'[\.,，。…\-—]+$', '', seg_text).strip()
+                if not clean_seg_text:
+                    clean_seg_text = seg_text # fallback if it was somehow only punctuation
+
                 print(f"[Qwen3-TTS] Generating segment {i+1}/{len(segments)}: '{seg_text[:20]}...'")
 
                 wavs, sr = model.generate_voice_clone(
-                    text=seg_text,
+                    text=clean_seg_text,
                     language=mapped_lang,
                     ref_audio=ref_audio_param,
                     ref_text=ref_text if ref_text and ref_text.strip() else None,
@@ -1277,32 +1283,28 @@ class DialogueInferenceNode:
             current_prompt = role_data[0] if isinstance(role_data, list) else role_data
             current_ref_text = ""
 
-            if period_pause > 0:
-                text = re.sub(r'\.(?!\d)', f'. [break={period_pause}]', text)
+            config = {
+                "pause_linebreak": pause_linebreak,
+                "period_pause": period_pause,
+                "comma_pause": comma_pause,
+                "question_pause": question_pause,
+                "hyphen_pause": hyphen_pause
+            }
+            
+            segments = split_text_by_pauses(text, config)
 
-            if comma_pause > 0:
-                text = re.sub(r',(?!\d)', f', [break={comma_pause}]', text)
-
-            if question_pause > 0:
-                text = re.sub(r'\?(?!\d)', f'? [break={question_pause}]', text)
-
-            if hyphen_pause > 0:
-                text = re.sub(r'-(?!\d)', f'- [break={hyphen_pause}]', text)
-
-            parts = re.split(pause_pattern, text)
-
-            for i in range(0, len(parts), 2):
-                segment_text = parts[i].strip()
+            for segment_text, current_segment_pause in segments:
                 pronounceable = re.sub(r'[^\w\u4e00-\u9fa5]', '', segment_text)
-                if not pronounceable.strip(): continue
+                if not pronounceable.strip():
+                    continue
 
-                current_segment_pause = 0.0
-                if i + 1 < len(parts):
-                    try:
-                        current_segment_pause = float(parts[i+1])
-                    except ValueError: pass
+                # Strip trailing flat punctuation to prevent robotic intonation dropping on short segments
+                # We keep ? and ! because they convey necessary emotive intonation.
+                clean_seg_text = re.sub(r'[\.,，。…\-—]+$', '', segment_text).strip()
+                if not clean_seg_text:
+                    clean_seg_text = segment_text
 
-                texts_to_gen.append(segment_text)
+                texts_to_gen.append(clean_seg_text)
                 prompts_to_gen.append(current_prompt)
                 langs_to_gen.append(mapped_lang)
                 pauses_to_gen.append(current_segment_pause)
