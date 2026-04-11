@@ -8,8 +8,8 @@
 
 ## 📋 更新日志
 
-- **2026-04-12**: v1.0.7: 移除 `QwenTTSConfigNode`（导致音色不一致）；修复 MPS 精度覆盖、通道不匹配崩溃、死代码等问题；代码清理 ([update.md](doc/update.md))
-- **2026-02-04**: 功能更新：添加全局停顿控制 (`QwenTTSConfigNode`) 与 `extra_model_paths.yaml` 支持 ([update.md](doc/update.md))
+- **2026-04-12 (v1.0.7)**: 移除 `QwenTTSConfigNode`（因分段生成导致音色不一致）；修复 MPS 精度 bug 和 CustomVoice 通道不匹配问题；代码清理 ([update.md](doc/update.md))
+- **2026-02-04**: 添加 `extra_model_paths.yaml` 支持 ([update.md](doc/update.md))
 - **2026-01-29**: 功能更新：支持加载自定义微调模型和 Speaker ([update.md](doc/update.md))
   - *注意：微调功能目前为实验性；推荐直接使用声音克隆以获得最佳效果。*
 - **2026-01-27**：功能优化：精简 LoadSpeaker UI，修复 PyTorch 兼容性 ([update.md](doc/update.md))

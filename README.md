@@ -8,8 +8,8 @@ ComfyUI custom nodes for speech synthesis, voice cloning, and voice design, base
 
 ## 📋 Changelog
 
-- **2026-04-12**: v1.0.7: Removed `QwenTTSConfigNode` (caused voice inconsistency); fixed MPS precision, channel mismatch crash, dead code; code cleanup ([update.md](doc/update.md))
-- **2026-02-04**: Feature Update: Added Global Pause Control (`QwenTTSConfigNode`) and `extra_model_paths.yaml` support ([update.md](doc/update.md))
+- **2026-04-12 (v1.0.7)**: Removed `QwenTTSConfigNode` due to voice inconsistency; fixed MPS precision bug & CustomVoice channel mismatch; code cleanup ([update.md](doc/update.md))
+- **2026-02-04**: Added `extra_model_paths.yaml` support ([update.md](doc/update.md))
 - **2026-01-29**: Feature Update: Support for loading custom fine-tuned models & speakers ([update.md](doc/update.md))
   - *Note: Fine-tuning is currently experimental; zero-shot cloning is recommended for best results.*
 - **2026-01-27**: UI Optimization: Sleek LoadSpeaker UI; fixed PyTorch 2.6+ compatibility ([update.md](doc/update.md))
