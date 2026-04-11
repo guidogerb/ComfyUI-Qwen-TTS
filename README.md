@@ -8,6 +8,7 @@ ComfyUI custom nodes for speech synthesis, voice cloning, and voice design, base
 
 ## 📋 Changelog
 
+- **2026-04-12**: v1.0.7: Removed `QwenTTSConfigNode` (caused voice inconsistency); fixed MPS precision, channel mismatch crash, dead code; code cleanup ([update.md](doc/update.md))
 - **2026-02-04**: Feature Update: Added Global Pause Control (`QwenTTSConfigNode`) and `extra_model_paths.yaml` support ([update.md](doc/update.md))
 - **2026-01-29**: Feature Update: Support for loading custom fine-tuned models & speakers ([update.md](doc/update.md))
   - *Note: Fine-tuning is currently experimental; zero-shot cloning is recommended for best results.*
@@ -105,16 +106,6 @@ Load saved voice features and metadata with zero configuration.
 ### 8. Qwen3-TTS Save Voice (`SaveVoiceNode`) [New]
 Persist extracted voice features and metadata to disk for future use.
 - **Capabilities**: Build a permanent voice library for reuse via `LoadSpeakerNode`.
-
-### 9. Qwen3-TTS Config (`QwenTTSConfigNode`) [New]
-Define global pause durations for punctuation to control speech rhythm.
-- **Inputs**:
-  - `pause_linebreak`: Silence after linebreaks.
-  - `period_pause`: Silence after periods (.).
-  - `comma_pause`: Silence after commas (,).
-  - `question_pause`: Silence after question marks (?).
-  - `hyphen_pause`: Silence after hyphens (-).
-- **Usage**: Connect output to the `config` input of other TTS nodes.
 
 ## Attention Mechanisms
 
